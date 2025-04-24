@@ -4,7 +4,7 @@ import { Cart } from '../cart/cart.entity';
 
 @Entity('user')
 export class User {
-  @PrimaryColumn('uuid')
+  @PrimaryColumn()
   id: string;
 
   @Column({
