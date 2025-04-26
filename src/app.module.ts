@@ -11,6 +11,7 @@ import serverConfig from './config/server.config';
 import postgresDbConfig from './config/postgresDb.config';
 import digitalOceanConfig from './config/digitalOcean.config';
 import * as path from 'path';
+import { SupabaseService } from './supabase.service';
 
 @Module({
   imports: [
@@ -47,7 +48,7 @@ import * as path from 'path';
     CartModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SupabaseService],
 })
 export class AppModule {
   constructor(private readonly configService: ConfigService) {}
