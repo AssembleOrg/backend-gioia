@@ -5,7 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { SupabaseService } from 'src/supabase.service';
+import { SupabaseService } from 'src/extraServices/supabase.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
