@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SupabaseService {
-  private supabase: SupabaseClient<Database>;
+  public supabase: SupabaseClient<Database>;
   private readonly logger = new Logger(SupabaseService.name);
 
   constructor(private configService: ConfigService) {

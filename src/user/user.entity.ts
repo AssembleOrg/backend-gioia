@@ -4,12 +4,13 @@ import { Cart } from '../cart/cart.entity';
 
 @Entity('user')
 export class User {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string;
 
   @Column({
     type: 'varchar',
     nullable: false,
+    unique: true,
     length: 120,
   })
   email: string;

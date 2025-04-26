@@ -18,7 +18,7 @@ export class ProductoController {
   constructor(private readonly productoService: ProductoService) {}
 
   @Get()
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse()
   async getAllProducts() {
