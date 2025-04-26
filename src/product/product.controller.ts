@@ -1,6 +1,15 @@
-import { Controller, Get, Logger, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  InternalServerErrorException,
+  Logger,
+  Query,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiExtraModels,
   ApiOkResponse,
   ApiQuery,
   ApiTags,
@@ -26,41 +35,57 @@ export class ProductoController {
   }
 
   @Get('/filter')
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @ApiOkResponse()
-  @ApiQuery({ name: 'category', required: false })
-  @ApiQuery({ name: 'name', required: false })
-  @ApiQuery({ name: 'sku', required: false })
-  @ApiQuery({ name: 'stock', required: false })
-  @ApiQuery({ name: 'wholeSaler', required: false })
-  @ApiQuery({ name: 'isVisible', required: false })
+  @ApiOkResponse({ type: [ProductResponse] })
+  @ApiQuery({
+    name: 'name',
+    type: String,
+    required: false,
+    description: 'Product Name',
+  })
+  @ApiQuery({
+    name: 'category',
+    type: [String],
+    required: false,
+    description: 'Product Category (can be repeated)',
+  })
+  @ApiQuery({
+    name: 'sku',
+    type: String,
+    required: false,
+    description: 'Product SKU',
+  })
+  @ApiQuery({
+    name: 'stock',
+    type: Number,
+    required: false,
+    description: 'Product Stock',
+  })
+  @ApiQuery({
+    name: 'wholeSaler',
+    type: String,
+    required: false,
+    description: 'Product WholeSaler',
+  })
+  @ApiQuery({
+    name: 'isVisible',
+    type: Boolean,
+    required: false,
+    description: 'Product IsVisible',
+  })
+  @ApiExtraModels(ProductGet)
   async getFilteredProducts(
-    @Query('category') category?: string,
-    @Query('name') name?: string,
-    @Query('sku') sku?: string,
-    @Query('stock') stock?: string,
-    @Query('wholeSaler') wholeSaler?: string,
-    @Query('isVisible') isVisible?: string,
+    @Query(ValidationPipe) query: ProductGet,
   ): Promise<ProductResponse[]> {
-    try {
-      const filters: Partial<Record<keyof ProductGet, string>> = {
-        category,
-        name,
-        sku,
-        stock,
-        wholeSaler,
-        isVisible,
-      };
-      const filteredProducts =
-        await this.productoService.getFilteredProducts(filters);
-      return filteredProducts.length > 0
-        ? filteredProducts.map((product) =>
-            plainToInstance(ProductResponse, product),
-          )
-        : [];
-    } catch (error) {
-      this.logger.error(error);
-    }
+    const filteredProducts = await this.productoService.getFilteredProducts({
+      ...query,
+      category: query.category ? [].concat(query.category) : undefined,
+    });
+    return filteredProducts.length > 0
+      ? filteredProducts.map((product) =>
+          plainToInstance(ProductResponse, product),
+        )
+      : [];
   }
 }

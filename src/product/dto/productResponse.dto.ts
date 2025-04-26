@@ -1,7 +1,7 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsNumber, IsString } from 'class-validator';
 
-@ApiSchema({ name: 'ProductResponse' })
+@ApiSchema({ name: 'ProductResponseDto' })
 export class ProductResponse {
   @ApiProperty({
     description: 'Product ID',

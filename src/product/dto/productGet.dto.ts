@@ -1,89 +1,65 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsNumber, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
-@ApiSchema({ name: 'ProductGet' })
+@ApiSchema({ name: 'ProductGetDto' })
 export class ProductGet {
-  @ApiProperty({
-    description: 'Product ID',
-    type: Number,
-  })
-  @IsNumber()
-  id: number;
-
   @ApiProperty({
     description: 'Product Name',
     type: String,
+    required: false,
   })
   @IsString()
+  @IsOptional()
   name: string;
 
   @ApiProperty({
     description: 'Product Category',
-    type: String,
+    type: [String],
+    required: false,
   })
-  @IsArray()
-  category: Array<string>;
-
-  @ApiProperty({
-    description: 'Product Price',
-    type: Number,
-  })
-  @IsNumber()
-  price: number;
-
-  @ApiProperty({
-    description: 'Product Description',
-    type: String,
-  })
-  @IsString()
-  description: string;
-
-  @ApiProperty({
-    description: 'Product Image Url',
-    type: String,
-  })
-  @IsString()
-  imageUrl: string;
+  @IsOptional()
+  @IsNotEmpty({ message: 'Category should not be empty' })
+  category: string[] | string;
 
   @ApiProperty({
     description: 'Product SKU',
     type: String,
+    required: false,
   })
   @IsString()
+  @IsOptional()
   sku: string;
-
-  @ApiProperty({
-    description: 'Product Presentation',
-    type: String,
-  })
-  @IsString()
-  presentation: string;
-
-  @ApiProperty({
-    description: 'Product Application',
-    type: String,
-  })
-  @IsString()
-  aplication: string;
 
   @ApiProperty({
     description: 'Product Stock',
     type: Number,
+    required: false,
   })
   @IsString()
+  @IsOptional()
   stock: number;
 
   @ApiProperty({
     description: 'Product WholeSaler',
     type: String,
+    required: false,
   })
   @IsString()
+  @IsOptional()
   wholeSaler: string;
 
   @ApiProperty({
     description: 'Product IsVisible',
     type: Boolean,
+    required: false,
   })
   @IsBoolean()
+  @IsOptional()
   isVisible: boolean;
 }

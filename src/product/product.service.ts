@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './product.entity';
 import { Repository } from 'typeorm';
@@ -19,9 +24,7 @@ export class ProductoService {
     });
   }
 
-  async getFilteredProducts(
-    filters: Partial<Record<keyof Product, string>>,
-  ): Promise<Product[]> {
+  async getFilteredProducts(filters: Partial<Product>): Promise<Product[]> {
     const qb = this.productRepository.createQueryBuilder('product');
 
     try {
@@ -31,21 +34,17 @@ export class ProductoService {
         }
 
         if (!this.productRepository.metadata.hasColumnWithPropertyPath(key)) {
-          throw new BadRequestException('El nombre de la columna no existe');
+          throw new BadRequestException(
+            `El nombre de la columna no existe: ${key}`,
+          );
         }
         const paramName = `filter_${key}`;
 
         if (key === 'category') {
-          qb.andWhere(
-            `
-               EXISTS (
-                 SELECT 1
-                 FROM unnest(product.category) AS element
-                 WHERE LOWER(element) LIKE LOWER(:${paramName})
-               )
-               `,
-            { [paramName]: `%${value.trim()}%` },
-          );
+          const categories = Array.isArray(value) ? value : [value];
+          qb.andWhere(`product.category && ARRAY[:...${paramName}]::text[]`, {
+            [paramName]: categories,
+          });
         } else {
           qb.andWhere(`product.${key} LIKE :${paramName}`, {
             [paramName]: `%${value}%`,
@@ -56,6 +55,7 @@ export class ProductoService {
       return await qb.getMany();
     } catch (error) {
       this.logger.error(error);
+      throw new InternalServerErrorException('Error al obtener los productos');
     }
   }
 }
