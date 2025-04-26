@@ -11,7 +11,7 @@ import serverConfig from './config/server.config';
 import postgresDbConfig from './config/postgresDb.config';
 import digitalOceanConfig from './config/digitalOcean.config';
 import * as path from 'path';
-import { SupabaseService } from './supabase.service';
+import { SupabaseService } from './extraServices/supabase.service';
 
 @Module({
   imports: [

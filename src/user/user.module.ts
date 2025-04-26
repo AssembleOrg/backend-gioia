@@ -3,7 +3,7 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
-import { SupabaseService } from 'src/supabase.service';
+import { SupabaseService } from 'src/extraServices/supabase.service';
 import { JwtService } from '@nestjs/jwt';
 
 @Module({

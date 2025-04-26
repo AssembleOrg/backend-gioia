@@ -9,7 +9,7 @@ import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { checkErrors, validateUser } from 'src/helpers/user.helpers';
 import { UserRole } from './user.enum';
-import { SupabaseService } from 'src/supabase.service';
+import { SupabaseService } from 'src/extraServices/supabase.service';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
