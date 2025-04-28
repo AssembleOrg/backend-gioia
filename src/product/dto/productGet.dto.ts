@@ -1,11 +1,5 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import {
-  IsArray,
-  IsBoolean,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 @ApiSchema({ name: 'ProductGetDto' })
 export class ProductGet {

@@ -46,6 +46,13 @@ export class ProductResponse {
   imageUrl: string;
 
   @ApiProperty({
+    description: 'Product Image Url',
+    type: String,
+  })
+  @IsString()
+  slug: string;
+
+  @ApiProperty({
     description: 'Product SKU',
     type: String,
   })

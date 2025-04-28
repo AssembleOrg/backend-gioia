@@ -5,9 +5,10 @@ import { ProductoService } from './product.service';
 import { ProductoController } from './product.controller';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { SupabaseService } from 'src/extraServices/supabase.service';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product])],
+  imports: [TypeOrmModule.forFeature([Product]), UserModule],
   controllers: [ProductoController],
   providers: [ProductoService, AuthGuard, SupabaseService],
 })
