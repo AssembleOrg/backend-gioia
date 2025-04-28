@@ -21,40 +21,25 @@ export class CartService {
   ) {}
 
   async getCartByOwnId(id: number): Promise<Cart> {
-    try {
-      return await this.cartRepository.findOne({
-        where: { id },
-        relations: ['items'],
-      });
-    } catch (error) {
-      this.logger.error(error);
-      throw new Error('Error getting cart');
-    }
+    return await this.cartRepository.findOne({
+      where: { id },
+      relations: ['items'],
+    });
   }
 
   async getCartByUserId(userId: number): Promise<Cart> {
-    try {
-      return await this.cartRepository.findOne({
-        where: { userId },
-        relations: ['items'],
-      });
-    } catch (error) {
-      this.logger.error(error);
-      throw new Error('Error getting cart');
-    }
+    return await this.cartRepository.findOne({
+      where: { userId },
+      relations: ['items'],
+    });
   }
 
   async createCart(userId: number): Promise<Cart> {
-    try {
-      const cart = this.cartRepository.create({
-        userId,
-        items: [],
-      });
-      return await this.cartRepository.save(cart);
-    } catch (error) {
-      this.logger.error(error);
-      throw new Error('Error creating cart');
-    }
+    const cart = this.cartRepository.create({
+      userId,
+      items: [],
+    });
+    return await this.cartRepository.save(cart);
   }
 
   async addItemToCart(

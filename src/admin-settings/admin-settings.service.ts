@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminSetting } from './admin-setting.entity';
 import { Repository } from 'typeorm';
@@ -25,115 +20,81 @@ export class AdminSettingsService {
     }
 
     // 2) Otherwise load from DB
-    try {
-      const settings = await this.adminSettingRepository.find();
+    const settings = await this.adminSettingRepository.find();
 
-      if (settings.length === 0) {
-        throw new NotFoundException('No settings found');
-      }
-
-      // pick the last one
-      const last = settings[settings.length - 1].minimumOrderAmount;
-      this.cachedMinOrderAmount = last; // store in cache
-      return last;
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException(
-        'Error getting minimum order amount',
-      );
+    if (settings.length === 0) {
+      throw new NotFoundException('No settings found');
     }
+
+    // pick the last one
+    const last = settings[settings.length - 1].minimumOrderAmount;
+    this.cachedMinOrderAmount = last; // store in cache
+    return last;
   }
 
   async setMinimumOrderAmount(
     minimumOrderAmount: number,
     id: number,
   ): Promise<void> {
-    try {
-      const setting = await this.adminSettingRepository.findOne({
-        where: { id },
-      });
-      if (setting) {
-        setting.minimumOrderAmount = minimumOrderAmount;
-        await this.adminSettingRepository.save(setting);
-      } else {
-        const newSetting = new AdminSetting();
-        newSetting.minimumOrderAmount = minimumOrderAmount;
-        await this.adminSettingRepository.save(newSetting);
-        this.clearMinimumOrderAmountCache();
-      }
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException(
-        'Error setting minimum order amount',
-      );
+    const setting = await this.adminSettingRepository.findOne({
+      where: { id },
+    });
+    if (setting) {
+      setting.minimumOrderAmount = minimumOrderAmount;
+      await this.adminSettingRepository.save(setting);
+    } else {
+      const newSetting = new AdminSetting();
+      newSetting.minimumOrderAmount = minimumOrderAmount;
+      await this.adminSettingRepository.save(newSetting);
+      this.clearMinimumOrderAmountCache();
     }
   }
 
   async getSellerEmail(): Promise<string> {
-    try {
-      const settings = await this.adminSettingRepository.find();
+    const settings = await this.adminSettingRepository.find();
 
-      if (settings.length === 0) {
-        throw new NotFoundException('No settings found');
-      }
-
-      return settings[length - 1].sellerEmail;
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Error getting seller email');
+    if (settings.length === 0) {
+      throw new NotFoundException('No settings found');
     }
+
+    return settings[length - 1].sellerEmail;
   }
 
   async setSellerEmail(sellerEmail: string, id: number): Promise<void> {
-    try {
-      const setting = await this.adminSettingRepository.findOne({
-        where: { id },
-      });
-      if (setting) {
-        setting.sellerEmail = sellerEmail;
-        await this.adminSettingRepository.save(setting);
-      } else {
-        const newSetting = new AdminSetting();
-        newSetting.sellerEmail = sellerEmail;
-        await this.adminSettingRepository.save(newSetting);
-      }
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Error setting seller email');
+    const setting = await this.adminSettingRepository.findOne({
+      where: { id },
+    });
+    if (setting) {
+      setting.sellerEmail = sellerEmail;
+      await this.adminSettingRepository.save(setting);
+    } else {
+      const newSetting = new AdminSetting();
+      newSetting.sellerEmail = sellerEmail;
+      await this.adminSettingRepository.save(newSetting);
     }
   }
 
   async getInfoEmail(): Promise<string> {
-    try {
-      const settings = await this.adminSettingRepository.find();
+    const settings = await this.adminSettingRepository.find();
 
-      if (settings.length === 0) {
-        throw new NotFoundException('No settings found');
-      }
-
-      return settings[length - 1].infoEmail;
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Error getting info email');
+    if (settings.length === 0) {
+      throw new NotFoundException('No settings found');
     }
+
+    return settings[length - 1].infoEmail;
   }
 
   async setInfoEmail(infoEmail: string, id: number): Promise<void> {
-    try {
-      const setting = await this.adminSettingRepository.findOne({
-        where: { id },
-      });
-      if (setting) {
-        setting.infoEmail = infoEmail;
-        await this.adminSettingRepository.save(setting);
-      } else {
-        const newSetting = new AdminSetting();
-        newSetting.infoEmail = infoEmail;
-        await this.adminSettingRepository.save(newSetting);
-      }
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Error setting info email');
+    const setting = await this.adminSettingRepository.findOne({
+      where: { id },
+    });
+    if (setting) {
+      setting.infoEmail = infoEmail;
+      await this.adminSettingRepository.save(setting);
+    } else {
+      const newSetting = new AdminSetting();
+      newSetting.infoEmail = infoEmail;
+      await this.adminSettingRepository.save(newSetting);
     }
   }
 
