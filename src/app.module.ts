@@ -12,6 +12,7 @@ import postgresDbConfig from './config/postgresDb.config';
 import digitalOceanConfig from './config/digitalOcean.config';
 import * as path from 'path';
 import { SupabaseService } from './extraServices/supabase.service';
+import { AdminSettingsModule } from './admin-settings/admin-settings.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SupabaseService } from './extraServices/supabase.service';
     ProductoModule,
     UserModule,
     CartModule,
+    AdminSettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SupabaseService],

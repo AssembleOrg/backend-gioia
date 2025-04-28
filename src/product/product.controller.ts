@@ -6,6 +6,7 @@ import {
   Logger,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
   ValidationPipe,
@@ -28,10 +29,10 @@ import { UserRole } from 'src/user/user.enum';
 import { ProductEdit } from './dto/productEdit.dto';
 import { ProductCreate } from './dto/productCreate.dto';
 
-@Controller('producto')
-@ApiTags('Kansaco - Productos')
+@Controller('product')
+@ApiTags('Kansaco - Products')
 export class ProductoController {
-  protected logger = new Logger('ProductoController');
+  protected logger = new Logger('ProductController');
   constructor(private readonly productoService: ProductoService) {}
 
   @Get()
@@ -106,8 +107,8 @@ export class ProductoController {
     return plainToInstance(ProductResponse, product);
   }
 
-  @Post('/:id/edit')
-  @Roles(UserRole.ADMIN)
+  @Put('/:id/edit')
+  @Roles(UserRole.ADMIN, UserRole.EMPLOYEE)
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiOkResponse()
@@ -120,7 +121,7 @@ export class ProductoController {
   }
 
   @Post('/create')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.EMPLOYEE)
   @UseGuards(AuthGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: ProductResponse })

@@ -9,7 +9,6 @@ import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { UserRole } from './user.enum';
 import { SupabaseService } from 'src/extraServices/supabase.service';
-import { JwtService } from '@nestjs/jwt';
 import { checkErrors, validateUser } from 'src/helpers/user.helper';
 
 @Injectable()
@@ -20,7 +19,6 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly supabaseService: SupabaseService,
-    private jwtService: JwtService,
   ) {}
 
   async register({
