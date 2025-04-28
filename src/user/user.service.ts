@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
@@ -30,78 +25,63 @@ export class UserService {
     password: string;
     fullName: string;
   }) {
-    try {
-      validateUser(email, password, fullName);
+    validateUser(email, password, fullName);
 
-      const { data, error } = await this.supabaseService.supabase.auth.signUp({
+    const { data, error } = await this.supabaseService.supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      this.logger.error(error);
+      throw new ConflictException('Error signing up');
+    }
+
+    const user: Partial<User> = {
+      email,
+      fullName,
+      role: UserRole.USER,
+      id: data.user.id,
+    };
+
+    await this.userRepository.save(user);
+  }
+
+  async login({ email, password }: { email: string; password: string }) {
+    const { data, error } =
+      await this.supabaseService.supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        this.logger.error(error);
-        throw new ConflictException('Error signing up');
-      }
-
-      const user: Partial<User> = {
-        email,
-        fullName,
-        role: UserRole.USER,
-        id: data.user.id,
-      };
-
-      await this.userRepository.save(user);
-    } catch (error) {
+    if (error) {
       this.logger.error(error);
-      throw new InternalServerErrorException(error);
+      checkErrors(error);
     }
-  }
 
-  async login({ email, password }: { email: string; password: string }) {
-    try {
-      const { data, error } =
-        await this.supabaseService.supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-      if (error) {
-        this.logger.error(error);
-        checkErrors(error);
-      }
-
-      const findUser = await this.userRepository.findOne({
-        where: { email },
-      });
-      if (!findUser) {
-        throw new ConflictException('User not found');
-      }
-
-      const token = data.session.access_token;
-
-      return {
-        token,
-      };
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException(error);
+    const findUser = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (!findUser) {
+      throw new ConflictException('User not found');
     }
+
+    const token = data.session.access_token;
+
+    return {
+      token,
+    };
   }
 
   async getUser(id: string) {
-    try {
-      const user = await this.userRepository.findOne({
-        where: { id },
-      });
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
 
-      if (!user) {
-        throw new ConflictException('User not found');
-      }
-
-      return user;
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException(error);
+    if (!user) {
+      throw new ConflictException('User not found');
     }
+
+    return user;
   }
 }

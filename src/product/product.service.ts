@@ -1,13 +1,18 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './product.entity';
-import { Repository } from 'typeorm';
-import { addSlug } from 'src/helpers/product.helper';
+import { In, Repository } from 'typeorm';
+import {
+  addSlug,
+  parseCsv,
+  parseXlsx,
+  parseXml,
+  toCsv,
+  toXlsx,
+  toXml,
+} from 'src/helpers/product.helper';
+
+export type ExportFormat = 'csv' | 'xml' | 'xlsx';
 
 @Injectable()
 export class ProductoService {
@@ -38,100 +43,195 @@ export class ProductoService {
   async getFilteredProducts(filters: Partial<Product>): Promise<Product[]> {
     const qb = this.productRepository.createQueryBuilder('product');
 
-    try {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (!value) {
-          return;
-        }
+    Object.entries(filters).forEach(([key, value]) => {
+      if (!value) {
+        return;
+      }
 
-        if (!this.productRepository.metadata.hasColumnWithPropertyPath(key)) {
-          throw new BadRequestException(
-            `El nombre de la columna no existe: ${key}`,
-          );
-        }
-        const paramName = `filter_${key}`;
+      if (!this.productRepository.metadata.hasColumnWithPropertyPath(key)) {
+        throw new BadRequestException(
+          `El nombre de la columna no existe: ${key}`,
+        );
+      }
+      const paramName = `filter_${key}`;
 
-        if (key === 'category') {
-          const categories = Array.isArray(value) ? value : [value];
-          qb.andWhere(`product.category && ARRAY[:...${paramName}]::text[]`, {
-            [paramName]: categories,
-          });
-        } else {
-          qb.andWhere(`product.${key} LIKE :${paramName}`, {
-            [paramName]: `%${value}%`,
-          });
-        }
-      });
+      if (key === 'category') {
+        const categories = Array.isArray(value) ? value : [value];
+        qb.andWhere(`product.category && ARRAY[:...${paramName}]::text[]`, {
+          [paramName]: categories,
+        });
+      } else {
+        qb.andWhere(`product.${key} LIKE :${paramName}`, {
+          [paramName]: `%${value}%`,
+        });
+      }
+    });
 
-      return await qb.getMany();
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Error Obtaining Products');
-    }
+    return await qb.getMany();
   }
 
   async getProduct(id: number): Promise<Product> {
-    try {
-      return this.productRepository.findOne({
-        where: {
-          id,
-        },
-      });
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Error Obtaining Product');
-    }
+    return this.productRepository.findOne({
+      where: {
+        id,
+      },
+    });
   }
 
   async editProduct(id: number, body: Partial<Product>): Promise<Product> {
-    try {
-      const hasNameChange = body.name !== undefined;
+    const hasNameChange = body.name !== undefined;
 
-      const finalBody = hasNameChange ? addSlug(body) : body;
+    const finalBody = hasNameChange ? addSlug(body) : body;
 
-      const product = await this.productRepository.preload({
-        id,
-        ...finalBody,
-      });
+    const product = await this.productRepository.preload({
+      id,
+      ...finalBody,
+    });
 
-      if (!product) {
-        throw new BadRequestException(`Product with id: ${id} not found`);
-      }
-
-      return await this.productRepository.save(product);
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Error Editing a Product');
+    if (!product) {
+      throw new BadRequestException(`Product with id: ${id} not found`);
     }
+
+    return await this.productRepository.save(product);
   }
 
   async createProduct(body: Partial<Product>): Promise<Product> {
-    try {
-      const product = this.productRepository.create(addSlug(body));
+    const product = this.productRepository.create(addSlug(body));
 
-      return await this.productRepository.save(product);
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Error Creating a Product');
-    }
+    return await this.productRepository.save(product);
   }
 
   async deleteProduct(id: number): Promise<Product> {
-    try {
-      const product = await this.productRepository.findOne({
-        where: {
-          id,
-        },
-      });
+    const product = await this.productRepository.findOne({
+      where: {
+        id,
+      },
+    });
 
-      if (!product) {
-        throw new BadRequestException(`Product with id: ${id} not found`);
-      }
-
-      return await this.productRepository.remove(product);
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Error Deleting a Product');
+    if (!product) {
+      throw new BadRequestException(`Product with id: ${id} not found`);
     }
+
+    return await this.productRepository.remove(product);
+  }
+
+  async getListProductsToUpdatePrices(formatOutput: string): Promise<{
+    buffer: Buffer;
+    contentType: string;
+    extension: string;
+    fileName: string;
+  }> {
+    const products = await this.productRepository.find({
+      select: ['id', 'name', 'price'],
+    });
+    this.logger.log('Cantidad de productos: ' + products.length);
+    const fileName = `productos-al-${new Date().toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })}`;
+
+    switch (formatOutput) {
+      case 'csv':
+        const file = toCsv(products);
+
+        return {
+          buffer: file,
+          contentType: 'text/csv',
+          extension: 'csv',
+          fileName,
+        };
+      case 'xml':
+        const fileXml = toXml(products);
+        return {
+          buffer: fileXml,
+          contentType: 'application/xml',
+          extension: 'xml',
+          fileName,
+        };
+      case 'xlsx':
+        const fileXlsx = await toXlsx(products);
+        return {
+          buffer: fileXlsx,
+          contentType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          extension: 'xlsx',
+          fileName,
+        };
+      default:
+        throw new BadRequestException('Format Unnacepted');
+    }
+  }
+
+  async updatePrices(file: Express.Multer.File): Promise<Product[]> {
+    // 1) detect extension
+    const ext = file.originalname.split('.').pop().toLowerCase();
+    this.logger.debug(`Detected file extension: ${ext}`);
+    let updates: Partial<Product>[];
+    switch (ext) {
+      case 'csv':
+        updates = await parseCsv(file.buffer.toString('utf8'));
+        break;
+      case 'xml':
+        updates = await parseXml(file.buffer);
+        break;
+      case 'xlsx':
+        updates = await parseXlsx(file.buffer);
+        break;
+      default:
+        throw new BadRequestException('Unsupported file format');
+    }
+
+    if (!updates.length) {
+      throw new BadRequestException('File contains no rows');
+    }
+
+    this.logger.debug('File contains', updates.length, 'rows');
+    this.logger.debug('First row:', updates[0]);
+
+    // 2) filter valid numeric ids
+    const validUpdates = updates.filter(
+      (u) => Number.isInteger(u.id) && !isNaN(u.price),
+    );
+    this.logger.debug(`Found ${validUpdates.length} valid updates`);
+    if (!validUpdates.length) {
+      throw new BadRequestException('No valid id/price rows found');
+    }
+    this.logger.debug('Valid updates found:', validUpdates.length);
+
+    const ids = validUpdates.map((u) => u.id);
+
+    const existingProds = await this.productRepository.find({
+      where: { id: In(ids) },
+      select: ['id', 'price'],
+    });
+
+    this.logger.debug('Found', existingProds.length, 'existing products');
+
+    const priceMap = new Map<number, number>(
+      existingProds.map((p) => [p.id, p.price]),
+    );
+
+    this.logger.debug('Price map:', priceMap.size);
+
+    const changed = validUpdates.filter(
+      ({ id, price }) => priceMap.get(id) !== price,
+    );
+
+    if (changed.length === 0) {
+      // nothing to do!
+      throw new BadRequestException('No changes to apply');
+    }
+
+    for (const { id, price } of changed) {
+      await this.productRepository.update(id, { price });
+    }
+
+    // 5) Reload just the changed products with full data
+    const refreshed = await this.productRepository.find({
+      where: { id: In(changed.map((u) => u.id)) },
+    });
+
+    return refreshed;
   }
 }

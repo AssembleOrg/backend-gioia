@@ -39,6 +39,7 @@ import { AdminSettingsModule } from './admin-settings/admin-settings.module';
           path.join(__dirname, 'user', '**', '*.entity{.ts,.js}'),
           path.join(__dirname, 'cart', '**', '*.entity{.ts,.js}'),
           path.join(__dirname, '..', 'cartItem', '**', '*.entity{.ts,.js}'),
+          path.join(__dirname, 'admin-settings', '**', '*.entity{.ts,.js}'),
         ],
         synchronize: false,
       }),
