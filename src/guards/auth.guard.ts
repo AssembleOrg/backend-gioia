@@ -2,38 +2,43 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
-  HttpException,
-  HttpStatus,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { SupabaseService } from 'src/extraServices/supabase.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private supabaseService: SupabaseService) {}
-  canActivate(context: ExecutionContext): boolean {
+  constructor(private readonly supabaseService: SupabaseService) {}
+
+  // 1) marcamos canActivate como async y devolvemos Promise<boolean>
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const authorization = request.headers['authorization'];
+    const authHeader = request.headers['authorization'];
 
-    // 1. Check if header exists
-    if (!authorization) {
-      throw new HttpException(
-        'Authorization header missing',
-        HttpStatus.UNAUTHORIZED,
-      );
+    // 2) header obligatorio
+    if (!authHeader) {
+      throw new UnauthorizedException('Authorization header missing');
     }
 
-    // 2. Validate the token (example for Bearer token)
-    const token = authorization.replace('Bearer ', '');
-    if (!token) {
-      throw new HttpException('Invalid token format', HttpStatus.UNAUTHORIZED);
+    // 3) formateo “Bearer <token>”
+    const [scheme, token] = authHeader.split(' ');
+    if (scheme !== 'Bearer' || !token) {
+      throw new UnauthorizedException('Invalid authorization format');
     }
 
-    // 3. Add any token verification logic here (JWT, custom check, etc.)
-    // if invalid => throw an error
-    this.supabaseService.verifyToken(token).catch((error) => {
-      throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
-    });
+    try {
+      // 4) esperamos el resultado de verifyToken
+      const data = await this.supabaseService.verifyToken(token);
 
-    return true; // if valid
+      // 5) opcional: pegar el user en request para usarlo luego en el handler
+      request.user = {
+        supabaseId: data.user.id,
+      };
+
+      return true;
+    } catch (err) {
+      // recogemos cualquier fallo y lo transformamos en 401
+      throw new UnauthorizedException(err.message || 'Unauthorized');
+    }
   }
 }

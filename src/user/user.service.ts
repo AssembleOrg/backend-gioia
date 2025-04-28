@@ -7,10 +7,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
-import { checkErrors, validateUser } from 'src/helpers/user.helpers';
 import { UserRole } from './user.enum';
 import { SupabaseService } from 'src/extraServices/supabase.service';
-import { JwtService } from '@nestjs/jwt';
+import { checkErrors, validateUser } from 'src/helpers/user.helper';
 
 @Injectable()
 export class UserService {
@@ -20,7 +19,6 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly supabaseService: SupabaseService,
-    private jwtService: JwtService,
   ) {}
 
   async register({
@@ -84,6 +82,23 @@ export class UserService {
       return {
         token,
       };
+    } catch (error) {
+      this.logger.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async getUser(id: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id },
+      });
+
+      if (!user) {
+        throw new ConflictException('User not found');
+      }
+
+      return user;
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException(error);

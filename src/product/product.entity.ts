@@ -19,6 +19,14 @@ export class Product {
     length: 120,
     default: '',
   })
+  slug: string;
+
+  @Column({
+    type: 'varchar',
+    nullable: false,
+    length: 120,
+    default: '',
+  })
   sku: string;
 
   @Column({

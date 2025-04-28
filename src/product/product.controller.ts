@@ -1,8 +1,12 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
-  InternalServerErrorException,
   Logger,
+  Param,
+  Post,
+  Put,
   Query,
   UseGuards,
   ValidationPipe,
@@ -19,11 +23,16 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { ProductGet } from './dto/productGet.dto';
 import { ProductResponse } from './dto/productResponse.dto';
 import { plainToInstance } from 'class-transformer';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRole } from 'src/user/user.enum';
+import { ProductEdit } from './dto/productEdit.dto';
+import { ProductCreate } from './dto/productCreate.dto';
 
-@Controller('producto')
-@ApiTags('Kansaco - Productos')
+@Controller('product')
+@ApiTags('Kansaco - Products')
 export class ProductoController {
-  protected logger = new Logger('ProductoController');
+  protected logger = new Logger('ProductController');
   constructor(private readonly productoService: ProductoService) {}
 
   @Get()
@@ -87,5 +96,49 @@ export class ProductoController {
           plainToInstance(ProductResponse, product),
         )
       : [];
+  }
+
+  @Get('/:id')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ProductResponse })
+  async getProduct(@Param('id') id: number): Promise<ProductResponse> {
+    const product = await this.productoService.getProduct(id);
+    return plainToInstance(ProductResponse, product);
+  }
+
+  @Put('/:id/edit')
+  @Roles(UserRole.ADMIN, UserRole.EMPLOYEE)
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse()
+  async editProduct(
+    @Param('id') id: number,
+    @Body(ValidationPipe) body: ProductEdit,
+  ): Promise<ProductResponse> {
+    const product = await this.productoService.editProduct(id, body);
+    return plainToInstance(ProductResponse, product);
+  }
+
+  @Post('/create')
+  @Roles(UserRole.ADMIN, UserRole.EMPLOYEE)
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ProductResponse })
+  async createProduct(
+    @Body(ValidationPipe) body: ProductCreate,
+  ): Promise<ProductResponse> {
+    const product = await this.productoService.createProduct(body);
+    return plainToInstance(ProductResponse, product);
+  }
+
+  @Delete('/:id')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse()
+  async deleteProduct(@Param('id') id: number): Promise<ProductResponse> {
+    const product = await this.productoService.deleteProduct(id);
+    return plainToInstance(ProductResponse, product);
   }
 }
