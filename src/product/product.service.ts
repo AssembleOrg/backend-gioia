@@ -26,10 +26,16 @@ export class ProductoService {
     // const products = await this.productRepository.find();
     // for (const p of products) {
     //   const name = p.name;
-    //   const slug = name.replace(/ /g, '-');
-
+    //   const slug = name
+    //     .normalize('NFD') // Split accented letters into base + diacritic
+    //     .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    //     .replace(/[' ', '/', '•']/g, '-') // Replace unwanted characters with '-'
+    //     .replace(/-+/g, '-') // Replace multiple hyphens with a single one
+    //     .toLowerCase()
+    //     .replace(/^-+|-+$/g, ''); // Optionally trim leading/trailing hyphens
+    //   this.logger.debug(`Updating ${p.name} with slug ${slug}`);
     //   await this.productRepository.update(p.id, {
-    //     slug: slug,
+    //     slug,
     //   });
     // }
 

@@ -13,6 +13,15 @@ export class ProductGet {
   name: string;
 
   @ApiProperty({
+    description: 'Product Name',
+    type: String,
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  slug: string;
+
+  @ApiProperty({
     description: 'Product Category',
     type: [String],
     required: false,

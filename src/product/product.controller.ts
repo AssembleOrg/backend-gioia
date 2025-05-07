@@ -46,7 +46,6 @@ export class ProductoController {
   constructor(private readonly productoService: ProductoService) {}
 
   @Get()
-  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse()
   async getAllProducts() {
@@ -54,7 +53,6 @@ export class ProductoController {
   }
 
   @Get('/filter')
-  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: [ProductResponse] })
   @ApiQuery({
@@ -92,6 +90,12 @@ export class ProductoController {
     type: Boolean,
     required: false,
     description: 'Product IsVisible',
+  })
+  @ApiQuery({
+    name: 'slug',
+    type: String,
+    required: false,
+    description: 'Product Slug',
   })
   @ApiExtraModels(ProductGet)
   async getFilteredProducts(
