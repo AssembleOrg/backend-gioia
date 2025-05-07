@@ -6,11 +6,16 @@ import { parse } from 'csv-parse';
 import { BadRequestException } from '@nestjs/common';
 
 export function addSlug(product: Partial<Product>) {
-  const nameWithoutSpaces = product.name.replace(/ /g, '-');
-
+  const slug = product.name
+    .normalize('NFD') // Split accented letters into base + diacritic
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/[' ', '/', '•']/g, '-') // Replace unwanted characters with '-'
+    .replace(/-+/g, '-') // Replace multiple hyphens with a single one
+    .toLowerCase()
+    .replace(/^-+|-+$/g, ''); // Optionally trim leading/trailing hyphens
   return {
     ...product,
-    slug: nameWithoutSpaces,
+    slug,
   };
 }
 
