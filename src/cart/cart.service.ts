@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from './cart.entity';
 import { Repository } from 'typeorm';
 import { CartItem } from './cartItem.entity';
+import { User } from 'src/user/user.entity';
 
 @Injectable()
 export class CartService {
@@ -18,6 +19,8 @@ export class CartService {
     private readonly cartRepository: Repository<Cart>,
     @InjectRepository(CartItem)
     private readonly cartItemRepository: Repository<CartItem>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async getCartByOwnId(id: number): Promise<Cart> {
@@ -27,14 +30,24 @@ export class CartService {
     });
   }
 
-  async getCartByUserId(userId: number): Promise<Cart> {
+  async getCartByUserId(userId: string): Promise<Cart> {
     return await this.cartRepository.findOne({
       where: { userId },
       relations: ['items'],
     });
   }
 
-  async createCart(userId: number): Promise<Cart> {
+  async createCart(userId: string): Promise<Cart> {
+    const getUser = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['cart'],
+    });
+    if (!getUser) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+    if (getUser.cart) {
+      throw new BadRequestException(`User ${userId} already has a cart`);
+    }
     const cart = this.cartRepository.create({
       userId,
       items: [],
