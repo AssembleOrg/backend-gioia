@@ -38,7 +38,7 @@ export class CartController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: CartResponse })
   async getCartByUserId(
-    @Param('userId') userId: number,
+    @Param('userId') userId: string,
   ): Promise<CartResponse> {
     return this.cartService.getCartByUserId(userId);
   }

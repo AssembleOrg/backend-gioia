@@ -1,5 +1,5 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 @ApiSchema({
   name: 'CartCreateDto',
@@ -8,7 +8,7 @@ export class CartCreate {
   @ApiProperty({
     description: 'Cart User Id',
   })
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  userId: number;
+  userId: string;
 }

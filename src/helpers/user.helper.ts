@@ -17,6 +17,10 @@ export function validateUser(
 }
 
 export function checkErrors(error: AuthError) {
+  if (error.code === 'invalid_credentials') {
+    throw new BadRequestException('Email or password is not valid');
+  }
+
   if (error.status === 400 && error.message.includes('email')) {
     throw new BadRequestException('Email is not valid or Is not confimed');
   }

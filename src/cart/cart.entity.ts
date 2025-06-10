@@ -30,7 +30,7 @@ export class Cart {
   user: User;
 
   @RelationId((cart: Cart) => cart.user)
-  userId: number;
+  userId: string;
 
   @OneToMany(() => CartItem, (item) => item.cart, {
     cascade: ['insert', 'update', 'remove'],
